@@ -1,81 +1,68 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const sessionId = urlParams.get('sessionId');
+const apiUrl = 'https://script.google.com/macros/s/AKfycbxwbFXevDp3Zs7bmWRyKrFZrLzfJfoKwPOteOTvxLXgJB4WBbDsEwcTkoT64xuGpOjcQw/exec';
 
-  if (sessionId) {
-      fetch(`http://localhost:3001/session/${sessionId}`)
-          .then(response => response.json())
-          .then(data => {
-              displayMessages(data);
-          })
-          .catch(error => console.error('Error:', error));
-  }
+document.addEventListener('DOMContentLoaded', function() {
+    const queryParams = new URLSearchParams(window.location.search);
+    const sessionId = queryParams.get('sessionId');
 
-  document.getElementById('submitButton').addEventListener('click', onSubmitButtonClick);
-  document.getElementById('userInput').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-          onSubmitButtonClick();
-      }
-  });
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = ''; // Clear the container before adding messages
+            data.forEach((row, index) => {
+                if (row[0] === sessionId.toString()) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message-container');
+                    const messageParagraph = document.createElement('p');
+                    messageParagraph.textContent = row[1];
+                    messageDiv.appendChild(messageParagraph);
+
+                    const likeButton = document.createElement('button');
+                    likeButton.textContent = `Like (${row[2]})`;
+                    likeButton.addEventListener('click', () => {
+                        fetch(apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ type: 'addLike', sessionId, message: row[1] }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            likeButton.textContent = `Like (${data.likes})`;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    });
+
+                    messageDiv.appendChild(likeButton);
+                    messagesContainer.appendChild(messageDiv);
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+
+    document.getElementById('submitButton').addEventListener('click', function() {
+        const userInput = document.getElementById('userInput').value;
+
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ type: 'addMessage', sessionId, message: userInput }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Message sent successfully:', data);
+            // Optionally, you can reload or fetch the messages again
+            window.location.href = `newResult.html?sessionId=${sessionId}`;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
 });
-
-function displayMessages(messages) {
-  const messagesContainer = document.getElementById('messagesContainer');
-  messagesContainer.innerHTML = '';
-
-  messages.forEach((message, index) => {
-      const messageElement = document.createElement('div');
-      messageElement.style.border = '1px solid black';
-      messageElement.style.padding = '10px';
-      messageElement.style.margin = '10px 0';
-      messageElement.style.display = 'flex';
-      messageElement.style.justifyContent = 'space-between';
-
-      const messageText = document.createElement('p');
-      messageText.textContent = message.message;
-      messageElement.appendChild(messageText);
-
-      const likeButton = document.createElement('button');
-      likeButton.textContent = `Like (${message.likes})`;
-      likeButton.addEventListener('click', () => {
-          toggleLike(sessionId, index, likeButton);
-      });
-      messageElement.appendChild(likeButton);
-
-      messagesContainer.appendChild(messageElement);
-  });
-}
-
-function onSubmitButtonClick() {
-  const userInput = document.getElementById('userInput').value;
-  const urlParams = new URLSearchParams(window.location.search);
-  const sessionId = urlParams.get('sessionId');
-
-  fetch('http://localhost:3001/submit', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ sessionId, message: userInput }),
-  })
-  .then(response => response.json())
-  .then(data => {
-      window.location.href = `newResult.html?sessionId=${data.sessionId}`;
-  })
-  .catch(error => console.error('Error:', error));
-}
-
-function toggleLike(sessionId, messageIndex, likeButton) {
-  fetch('http://localhost:3001/like', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ sessionId, messageIndex }),
-  })
-  .then(response => response.json())
-  .then(data => {
-      likeButton.textContent = `Like (${data.likes})`;
-  })
-  .catch(error => console.error('Error:', error));
-}
