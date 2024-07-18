@@ -1,28 +1,25 @@
-document.getElementById('submitButton').addEventListener('click', onSubmitButtonClick);
-document.getElementById('userInput').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-        onSubmitButtonClick();
-    }
-});
+const apiUrl = 'https://script.google.com/macros/s/AKfycbxwbFXevDp3Zs7bmWRyKrFZrLzfJfoKwPOteOTvxLXgJB4WBbDsEwcTkoT64xuGpOjcQw/exec';
 
-function onSubmitButtonClick() {
+document.getElementById('submitButton').addEventListener('click', function() {
     const userInput = document.getElementById('userInput').value;
-    const sessionId = generateSessionId();
-    fetch('http://localhost:3001/submit', {
+    const sessionId = new Date().getTime(); // Example sessionId, replace with actual logic
+
+    fetch(apiUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ sessionId, message: userInput }),
+        body: JSON.stringify({ type: 'addMessage', sessionId, message: userInput }),
     })
     .then(response => response.json())
     .then(data => {
-        window.location.href = `newResult.html?sessionId=${data.sessionId}`;
+        console.log('Message sent successfully:', data);
+        // Redirect to the results page with the sessionId
+        window.location.href = `newResult.html?sessionId=${sessionId}`;
     })
-    .catch(error => console.error('Error:', error));
-}
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
 
-function generateSessionId() {
-    return 'session_' + Math.random().toString(36).substr(2, 9);
-}
 
