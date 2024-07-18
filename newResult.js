@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sessionId = urlParams.get('sessionId');
 
   if (sessionId) {
-      fetch(`http://localhost:3000/session/${sessionId}`)
+      fetch(`http://localhost:3001/session/${sessionId}`)
           .then(response => response.json())
           .then(data => {
               displayMessages(data);
@@ -51,7 +51,7 @@ function onSubmitButtonClick() {
   const urlParams = new URLSearchParams(window.location.search);
   const sessionId = urlParams.get('sessionId');
 
-  fetch('http://localhost:3000/submit', {
+  fetch('http://localhost:3001/submit', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ function onSubmitButtonClick() {
 }
 
 function toggleLike(sessionId, messageIndex, likeButton) {
-  fetch('http://localhost:3000/like', {
+  fetch('http://localhost:3001/like', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
