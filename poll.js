@@ -8,7 +8,7 @@ document.getElementById('userInput').addEventListener('keydown', function (e) {
 function onSubmitButtonClick() {
     const userInput = document.getElementById('userInput').value;
     const sessionId = generateSessionId();
-    fetch('http://localhost:3000/submit', {
+    fetch('http://localhost:3001/submit', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
